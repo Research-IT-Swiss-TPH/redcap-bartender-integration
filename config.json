@@ -1,0 +1,132 @@
+{
+    "name": "Bartender Integration",
+    "namespace": "STPH\\Bartender",
+    "description": "Create print jobs and send them to your Bartender Webservice Integration",
+    "authors": [
+        {
+            "name": "Ekin Tertemiz",
+            "email": "ekin.tertemiz@swisstph.ch",
+            "institution": "Swiss Tropical and Public Health Institute"
+        }
+    ],
+    "compatibility": {
+      "php-version-min": "5.4.0",
+      "php-version-max": "",
+      "redcap-version-min": "8.1.0",
+      "redcap-version-max": ""
+    },
+    "permissions": [
+      "redcap_every_page_top"
+    ],
+    "project-settings": [
+      {
+        "key": "webservice_url",
+        "name": "<b>Webservice Url</b></div>",
+        "type": "json"
+      },        
+      {
+        "key": "label_printers",
+        "name": "<b>Printers</b><br>Add printers that can later be selected during print job.</div>",
+        "type": "descriptive"
+      },
+      {
+        "key": "printers",
+        "name": "Add printer",
+        "required": false,
+        "type": "sub_settings",
+        "repeatable": true,
+        "sub_settings": [
+          {
+            "key": "printer_name",
+            "name": "Printer Name",
+            "required": true,
+            "type": "text",
+            "repeatable": false
+          },
+          {
+            "key": "printer_url",
+            "name": "Printer Address",
+            "required": true,
+            "type": "text",
+            "repeatable": false
+          }
+        ]
+      },
+      {
+        "key": "label_print_jobs",
+        "name": "<b>Print Jobs</b><br>Define print jobs with all variables that you need.</div>",
+        "type": "descriptive"
+      },      
+      {
+        "key": "print_jobs",
+        "name": "Add print job",
+        "type": "sub_settings",
+        "repeatable": true,
+        "sub_settings": [
+          {
+            "key": "print_job_name",
+            "name": "Print Job Name",
+            "required": true,
+            "type": "text",
+            "repeatable": false
+          },
+          {
+            "key": "print_job_description",
+            "name": "Print Job Description",
+            "required": false,
+            "type": "textarea",
+            "repeatable": false
+          },
+          {
+            "key": "print_template_name",
+            "name": "Bartender Template Name",
+            "required": false,
+            "type": "text",
+            "repeatable": false
+          },          
+          {
+            "key": "label_print_jobs_variable",
+            "name": "<b>Print variables</b><br>Are variables that are send to the Bartender Template to fill into placeholders.</div>",
+            "type": "descriptive"
+          },           
+          {
+            "key": "print_job_variables",
+            "name": "Add variable",
+            "required": false,
+            "type": "sub_settings",
+            "repeatable": true,
+            "sub_settings": [
+                {
+                    "key": "print_job_variable_name",
+                    "name": "Variable Name",
+                    "required": false,
+                    "type": "text",
+                    "repeatable": false
+                  },
+                  {
+                    "key": "print_job_variable_prefix",
+                    "name": "Prefix",
+                    "required": false,
+                    "type": "text",
+                    "repeatable": false
+                  },                  
+                  {
+                    "key": "print_job_variable_field",
+                    "name": "Select Variable",
+                    "required": false,
+                    "type": "field-list",
+                    "repeatable": false
+                  },
+                  {
+                    "key": "print_job_variable_suffix",
+                    "name": "Suffix",
+                    "required": false,
+                    "type": "text",
+                    "repeatable": false
+                  }
+            ]
+          }
+        ]
+      }
+    ]
+  }
