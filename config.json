@@ -1,6 +1,7 @@
 {
     "name": "Bartender Integration",
     "namespace": "STPH\\Bartender",
+    "framework-version": 6,
     "description": "Create print jobs and send them to your Bartender Webservice Integration",
     "authors": [
         {
@@ -16,14 +17,11 @@
       "redcap-version-max": ""
     },
     "permissions": [
-      "redcap_every_page_top"
+      "redcap_every_page_top",
+      "redcap_module_system_enable",
+      "redcap_module_system_change_version"
     ],
-    "project-settings": [
-      {
-        "key": "webservice_url",
-        "name": "<b>Webservice Url</b></div>",
-        "type": "json"
-      },        
+    "system-settings": [
       {
         "key": "label_printers",
         "name": "<b>Printers</b><br>Add printers that can later be selected during print job.</div>",
@@ -51,79 +49,105 @@
             "repeatable": false
           }
         ]
+      }
+    ],
+    "project-settings": [
+      {
+        "key": "alert_warning_printers",
+        "name": "<div class=\u0022alert alert-warning configuration-alert\u0022 role=\u0022alert\u0022><i class=\u0022fas fa-exclamation-triangle\u0022></i> <b>Notice:</b> Printers must be added in Module System Settings.</div>",
+        "type": "descriptive"
       },
       {
+        "key": "webservice_url",
+        "name": "<b>Webservice Url</b><br> Address to the Webservice Integration that are deployed on the Server.</div>",
+        "type": "json"
+      },         
+      {
         "key": "label_print_jobs",
-        "name": "<b>Print Jobs</b><br>Define print jobs with all variables that you need.</div>",
+        "name": "<b>Print Jobs</b><br>Add print jobs with each multiple tasks and variables.</div>",
         "type": "descriptive"
       },      
       {
         "key": "print_jobs",
-        "name": "Add print job",
+        "name": "Print job",
         "type": "sub_settings",
         "repeatable": true,
         "sub_settings": [
           {
-            "key": "print_job_name",
-            "name": "Print Job Name",
+            "key": "pj_name",
+            "name": "<b>Name</b>",
             "required": true,
             "type": "text",
             "repeatable": false
           },
           {
-            "key": "print_job_description",
-            "name": "Print Job Description",
-            "required": false,
+            "key": "pj_descr",
+            "name": "<b>Description</b>",
+            "required": true,
             "type": "textarea",
             "repeatable": false
           },
           {
-            "key": "print_template_name",
-            "name": "Bartender Template Name",
-            "required": false,
+            "key": "pj_file",
+            "name": "Bartender Filename",
+            "required": true,
             "type": "text",
             "repeatable": false
-          },          
+          },
           {
-            "key": "label_print_jobs_variable",
-            "name": "<b>Print variables</b><br>Are variables that are send to the Bartender Template to fill into placeholders.</div>",
+            "key": "label_pj_task",
+            "name": "<b>Tasks</b><br>A print job can have multiple tasks. Make use of a Bartender File with different input variables.</div>",
             "type": "descriptive"
-          },           
+          },
           {
-            "key": "print_job_variables",
-            "name": "Add variable",
+            "key": "print_job_tasks",
+            "name": "Task",
             "required": false,
             "type": "sub_settings",
             "repeatable": true,
             "sub_settings": [
-                {
-                    "key": "print_job_variable_name",
-                    "name": "Variable Name",
-                    "required": false,
-                    "type": "text",
-                    "repeatable": false
-                  },
-                  {
-                    "key": "print_job_variable_prefix",
-                    "name": "Prefix",
-                    "required": false,
-                    "type": "text",
-                    "repeatable": false
-                  },                  
-                  {
-                    "key": "print_job_variable_field",
-                    "name": "Select Variable",
-                    "required": false,
-                    "type": "field-list",
-                    "repeatable": false
-                  },
-                  {
-                    "key": "print_job_variable_suffix",
-                    "name": "Suffix",
-                    "required": false,
-                    "type": "text",
-                    "repeatable": false
-                  }
+              {
+                "key": "label_print_jobs_variable",
+                "name": "<b>Variables</b><br>Define variables to be send with your request to the Bartender Integration and define how the variable values should be formatted.</div>",
+                "type": "descriptive"
+              },
+              {
+                "key": "print_job_variables",
+                "name": "Variable",
+                "required": false,
+                "type": "sub_settings",
+                "repeatable": true,
+                "sub_settings": [               
+                    {
+                        "key": "pj_var_name",
+                        "name": "Variable Name<br>Must be the same as in the the Bartender File.",
+                        "required": true,
+                        "type": "text",
+                        "repeatable": false
+                      },
+                      {
+                        "key": "pj_var_prefix",
+                        "name": "Prefix<br>Add content before the variable value.",
+                        "required": false,
+                        "type": "text",
+                        "repeatable": false
+                      },                  
+                      {
+                        "key": "pj_var_field",
+                        "name": "Select variable<br>Source of the variable value.",
+                        "required": false,
+                        "type": "field-list",
+                        "repeatable": false
+                      },
+                      {
+                        "key": "pj_var_suffix",
+                        "name": "Suffix<br>Add content after the variable value.",
+                        "required": false,
+                        "type": "text",
+                        "repeatable": false
+                      }
+                ]
+              }              
             ]
           }
         ]
