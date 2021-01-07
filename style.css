@@ -12,6 +12,14 @@
     font-size: 10px;    
 }
 
+.variable-preview {
+    display: none;
+}
+
+.variable-content {
+    display: none;
+}
+
 
 .configuration-alert {
     width: 490px;

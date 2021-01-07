@@ -16,14 +16,66 @@ class Bartender extends AbstractExternalModule {
     public function __construct()
     {
         parent::__construct();
-        define("MODULE_DOCROOT_BARTENDER", $this->getModulePath());        
+        define("MODULE_DOCROOT_BARTENDER", $this->getModulePath());
+        //define("PRINT_JOBS", $this->getSubSettings("print_jobs", $_GET["pid"]));
+    }
+
+    //  Request Controllers
+    public function testAsync(){
+
+        header('Content-Type: application/json');
+            echo json_encode(array('message' => 'Hello World'));
+        exit;
+    }
+
+    public function getPrintJobData( $project_id, $record_id, $job_id){
+
+        // Get Print Job Data
+        $data = [];
+        $print_jobs = $this->getSubSettings("print_jobs");
+        $print_job = $print_jobs[$job_id];
+        $print_tasks = $print_job["print_job_tasks"];
+
+        foreach ( $print_tasks as $t_id => $print_task) {
+
+            $current_task = [];
+            foreach (  $print_task["print_job_variables"] as $v_id => $p_var) {
+
+                $field_value="";
+                if(!empty($p_var["pj_var_field"])) {
+                    $field_value=$this->getFieldValue($project_id, $record_id, $p_var["pj_var_field"]);
+                }
+                $var_name = $p_var["pj_var_name"];
+                $var_value = $p_var["pj_var_prefix"].$field_value.$p_var["pj_var_suffix"];
+                $current_task[$var_name]  = $var_value;
+
+            }
+            array_push( $data, $current_task);
+
+        }
+
+        //  Response Array
+        $res = [];
+        array_push(
+            $res, 
+            $data
+        );
+
+        header('Content-Type: application/json');
+        echo json_encode($res);
+        exit;
+
     }
 
     public function includeJsAndCss()
     {
     ?>
-        <script src="<?= $this->getUrl("/js/bartender.js") ?>"></script>
+
         <link href="<?= $this->getUrl("/style.css") ?>" rel="stylesheet">
+        <script src="<?= $this->getUrl("/js/bartender.js") ?>"></script>
+        <script>
+            STPH_Bartender.requestHandlerUrl = "<?= $this->getUrl("requestHandler.php") ?>";
+        </script>
     <?php
     }
 
@@ -97,7 +149,7 @@ class Bartender extends AbstractExternalModule {
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="modal-step mt-3" id="modal-step-1">
-                                                    <p class="h6">1. Print job:</p>
+                                                    <p class="h6">Print job:</p>
                                                     <select id="select-print-job" class="custom-select">
                                                         <option disabled selected value>Click here to select a print job..</option>
                                                     <?php foreach ($print_jobs as $key=>$print_job):?>
@@ -106,8 +158,8 @@ class Bartender extends AbstractExternalModule {
                                                     </select>                        
                                                 </div>
 
-                                                <div class="modal-step  mt-3" id="modal-step-2">
-                                                    <p class="h6">2. Printer:</p>
+                                                <div class="modal-step mt-3" id="modal-step-2">
+                                                    <p class="h6">Printer:</p>
                                                     <select id="select-printer" class="custom-select">
                                                         <option disabled selected value>Click here to select a printer..</option>
                                                         <?php 
@@ -119,7 +171,7 @@ class Bartender extends AbstractExternalModule {
                                                 </div>
 
                                                 <div class="modal-step mt-3" id="modal-step-3">
-                                                    <p class="h6">3. Copies:</p>
+                                                    <p class="h6">Copies:</p>
                                                     <select name="copies" id="select-copies" class="custom-select">
                                                         <option selected>1</option>
                                                         <option>2</option>
@@ -136,55 +188,27 @@ class Bartender extends AbstractExternalModule {
 
                                             </div>
                                             <div class="col-md-6">
+                                                <div class="mt-3">
+                                                <p class="h6">Job Summary:</p>
                                                 <?php foreach( $print_jobs as $j_id=>$print_job ): ?>
-                                                <?php $variables[$j_id] = [] ?>
-                                                <div id="print-job-<?= $j_id ?>" class="mt-3 mb-3 print-job-preview">
+                                                <div id="print-job-<?= $j_id ?>" class="mb-3 print-job-preview">
                                                     <div class="text-secondary">
-                                                        <p><b>Job description:</b><br><?= $print_job["pj_descr"] ?></p>
-                                                        <p><b>Bartender file:</b><br><img class="file-icon" src="<?= $this->getUrl('img\bartender_icon.png') ?>"><span class="font-italic"><?= $print_job["pj_file"] ?></span></p>
-                                                        <p><b>Variables: </b></p>                                     
+                                                        <p><b>Name:</b><br><?= $print_job["pj_name"] ?></p>                                                           
+                                                        <p><b>Description:</b><br><?= $print_job["pj_descr"] ?></p>
+                                                        <p><b>File:</b><br><img class="file-icon" src="<?= $this->getUrl('img\bartender_icon.png') ?>"><span class="font-italic"><?= $print_job["pj_file"] ?></span></p>
+                                                        <p><b>URL:</b><br><?= $print_job["pj_name"] ?></p>                                                           
                                                     </div>
                                                 </div>
-                                                <?php endforeach;                                
-                                                    $data["variables"] = $variables;
-                                                ?>
-                                                <!-- <pre><?php // json_encode($data) ?></pre> -->
+                                                <?php endforeach; ?>
+                                                <!-- <pre><?php // json_encode($data) ?></pre> -->                                                    
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="row">
                                             <div class="col">
-                                            <table class="table table-sm table-borderless">
-                                                            <thead>
-                                                                <tr>
-                                                                <th scope="col">Task #</th>
-                                                                <th scope="col">Variable</th>
-                                                                <th scope="col">Value</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>                                            
-                                                                <?php foreach ( $print_job["print_job_tasks"] as $t_id => $print_task): ?>
-                                                                    <?php $task = []; ?>
-                                                                    <td colspan="3" class="table-info" scope="row"><?= $t_id + 1 ?></td>
-                                                                    <?php foreach ( $print_task["print_job_variables"] as $v_id => $p_var ):  ?>
-                                                                        <?php 
-                                                                            $field_value="";
-                                                                            if(!empty($p_var["pj_var_field"])) {
-                                                                                $field_value=$this->getFieldValue($project_id, $record_id, $p_var["pj_var_field"]);
-                                                                            }
-                                                                            $var_name = $p_var["pj_var_name"];
-                                                                            $var_value = $p_var["pj_var_prefix"].$field_value.$p_var["pj_var_suffix"];
-                                                                            $task[$var_name]  = $var_value;
-                                                                        ?>
-                                                                        <tr>
-                                                                            <td scope="row"></td>
-                                                                            <td><?= $var_name  ?></td>
-                                                                            <td><?= $var_value ?></td>
-                                                                        </tr>                                                        
-                                                                    <?php endforeach; ?>
-                                                                    <?php array_push( $variables[$j_id], $task); ?>
-                                                                <?php endforeach; ?>
-                                                            </tbody>
-                                                        </table>
+                                                <table id="data-preview-table" class="table table-sm table-borderless">
+                                                  
+                                                </table>
                                             </div>
                                         </div>
                                     </div>
@@ -192,6 +216,7 @@ class Bartender extends AbstractExternalModule {
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                                     <button id="button-submit-print" type="button" class="btn btn-primary" disabled>Print</button>
+                                    <button id="test" type="button" class="btn btn-success" >Test</button>
                                 </div>
                             </div>
                         </div>
