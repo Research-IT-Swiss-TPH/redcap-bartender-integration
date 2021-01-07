@@ -97,19 +97,19 @@ class Bartender extends AbstractExternalModule {
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="modal-step mt-3" id="modal-step-1">
-                                                    <p class="h6">1. Select a print job:</p>
-                                                    <select class="custom-select">
-                                                        <option selected>Click here to select a print job..</option>
+                                                    <p class="h6">1. Print job:</p>
+                                                    <select id="select-print-job" class="custom-select">
+                                                        <option disabled selected value>Click here to select a print job..</option>
                                                     <?php foreach ($print_jobs as $key=>$print_job):?>
-                                                        <option value="'.$key.'"><?= $print_job["pj_name"] ?></option>
+                                                        <option value="<?= $key ?>"><?= $print_job["pj_name"] ?></option>
                                                     <?php endforeach; ?>                        
                                                     </select>                        
                                                 </div>
 
                                                 <div class="modal-step  mt-3" id="modal-step-2">
-                                                    <p class="h6">2. Select a printer:</p>
-                                                    <select class="custom-select">
-                                                        <option selected>Click here to select a printer..</option>
+                                                    <p class="h6">2. Printer:</p>
+                                                    <select id="select-printer" class="custom-select">
+                                                        <option disabled selected value>Click here to select a printer..</option>
                                                         <?php 
                                                         foreach ($printers as $key=>$printer) {
                                                             echo '<option value="'.$key.'">'. $printer["printer_name"] .'</option>';
@@ -119,20 +119,41 @@ class Bartender extends AbstractExternalModule {
                                                 </div>
 
                                                 <div class="modal-step mt-3" id="modal-step-3">
-                                                    <p class="h6">3. Define copies:</p>
-                                                    <input class="form-control" type="number" name="copies" value="1">
+                                                    <p class="h6">3. Copies:</p>
+                                                    <select name="copies" id="select-copies" class="custom-select">
+                                                        <option selected>1</option>
+                                                        <option>2</option>
+                                                        <option>3</option>
+                                                        <option>4</option>
+                                                        <option>5</option>
+                                                        <option>6</option>
+                                                        <option>7</option>
+                                                        <option>8</option>
+                                                        <option>9</option>
+                                                        <option>10</option>
+                                                    </select>                                                    
                                                 </div>
 
                                             </div>
                                             <div class="col-md-6">
                                                 <?php foreach( $print_jobs as $j_id=>$print_job ): ?>
                                                 <?php $variables[$j_id] = [] ?>
-                                                <div id="print-job-<?= $j_id ?>" class="mt-3 mb-3">
-                                                    <div class="print-job-preview text-secondary">
+                                                <div id="print-job-<?= $j_id ?>" class="mt-3 mb-3 print-job-preview">
+                                                    <div class="text-secondary">
                                                         <p><b>Job description:</b><br><?= $print_job["pj_descr"] ?></p>
                                                         <p><b>Bartender file:</b><br><img class="file-icon" src="<?= $this->getUrl('img\bartender_icon.png') ?>"><span class="font-italic"><?= $print_job["pj_file"] ?></span></p>
-                                                        <p><b>Variables: </b></p>
-                                                        <table class="table table-sm table-borderless">
+                                                        <p><b>Variables: </b></p>                                     
+                                                    </div>
+                                                </div>
+                                                <?php endforeach;                                
+                                                    $data["variables"] = $variables;
+                                                ?>
+                                                <!-- <pre><?php // json_encode($data) ?></pre> -->
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col">
+                                            <table class="table table-sm table-borderless">
                                                             <thead>
                                                                 <tr>
                                                                 <th scope="col">Task #</th>
@@ -163,20 +184,14 @@ class Bartender extends AbstractExternalModule {
                                                                     <?php array_push( $variables[$j_id], $task); ?>
                                                                 <?php endforeach; ?>
                                                             </tbody>
-                                                        </table>                                       
-                                                    </div>
-                                                </div>
-                                                <?php endforeach;                                
-                                                    $data["variables"] = $variables;
-                                                ?>
-                                                <!-- <pre><?php // json_encode($data) ?></pre> -->
+                                                        </table>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                    <button type="button" class="btn btn-primary" disabled>Print</button>
+                                    <button id="button-submit-print" type="button" class="btn btn-primary" disabled>Print</button>
                                 </div>
                             </div>
                         </div>
