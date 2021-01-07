@@ -1,0 +1,32 @@
+.file-icon {
+    width:11px;
+    height: 11px;
+    margin-top:-2px;
+    margin-right: 2px;
+}
+
+.preview {
+    border: 1px solid #ecf0f1;
+    padding: 5px 15px 5px 15px;
+    border-radius: 3px;
+    font-size: 10px;    
+}
+
+
+.configuration-alert {
+    width: 490px;
+    border-color: #ffeeba!important;
+}
+
+.print-job-preview {
+    display: none;
+}
+
+
+@media (min-width: 992px) {
+
+    .configuration-alert {
+        width: 700px;
+    }
+
+}
