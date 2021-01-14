@@ -50,16 +50,20 @@ $(function() {
         }
     }
 
-    function onTest(){
+    function onDownloadCSV(){
         $.ajax({
             method: 'POST',
-            url: STPH_Bartender.requestHandlerUrl + '&type=getPrintJobData',
+            url: STPH_Bartender.requestHandlerUrl + '&type=triggerFileIntegration',
             data: {
-                project_id: 14,
-                record_id: 1,
-                job_id: 0,
-                printer_id: 2,
-                copies: 1
+
+                requestData: {
+                    project_id: 14,
+                    record_id: 1,
+                    job_id: 0,
+                    printer_id: 2,
+                    copies: 1
+                },
+
             },
             success: function(data) {
 
@@ -69,8 +73,7 @@ $(function() {
                 link.download="test.csv";
                 link.click();
 
-                console.log(data[0])
-                //renderDataPreview(data[0])
+                //console.log(data);                
             },
             error: function(data) {
                 var response = data['responseJSON'];
@@ -85,8 +88,12 @@ $(function() {
         });
     }
 
+    function onWebPrint(){
 
-    function onDownloadCSV(){
+    }
+
+
+    function onDownloadCSVold(){
         fetch(STPH_Bartender.requestHandlerUrl + '&type=downloadCSV', {
             method: 'POST',
             body: {
@@ -165,7 +172,10 @@ $(function() {
     body.on('change', '#select-print-job', onPrintJobChange);
     body.on('change', '#select-printer', onPrinterChange);
 
-    body.on('click', '#test', onTest);
+    body.on('click', '#button-submit-mode-file', onDownloadCSV);
+
+    //body.on('click', '#button-submit-mode-web', onWebPrint);
+
 
 });
 

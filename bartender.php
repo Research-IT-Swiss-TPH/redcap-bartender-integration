@@ -17,6 +17,7 @@ class Bartender extends AbstractExternalModule {
     {
         parent::__construct();
         define("MODULE_DOCROOT_BARTENDER", $this->getModulePath());
+        define("MODULE_INTEGRATION_MODE", $this->getSystemSetting("integration_mode"));
         //define("PRINT_JOBS", $this->getSubSettings("print_jobs", $_GET["pid"]));
     }
 
@@ -28,81 +29,101 @@ class Bartender extends AbstractExternalModule {
         exit;
     }
 
-    public function createCSV($list, $meta) {
-        // create a file pointer connected to the output stream
-        $output = fopen('php://output', 'w');
+    public function triggerFileIntegration($requestData) {
 
-        // Create Table Header
+        $params = (object) $requestData;
 
-        $header = array("number", "type", "barcode", "document", "printer");
-        fputcsv($output, $header);
+        $data = $this->getData( 
+                        $params->job_id, 
+                        $params->project_id, 
+                        $params->record_id 
+                );
 
-        foreach($list as $fields) {
-
-            foreach($meta as $metafield) {
-                array_push($fields, $metafield);
-            }
-            // output the column headings
-            fputcsv($output,$fields);
-
-        }
-
-        fclose($output);
+        $this->getCSV(
+            $data, 
+            $params->job_id, 
+            $params->printer_id, 
+            $params->copies
+        );
 
     }
 
-    public function getPrintJobData( $project_id, $record_id, $job_id, $printer_id, $copies){
+    public function getData($job_id, $project_id, $record_id){        
 
         // Get Print Job Data
         $data = [];
-        $print_jobs = $this->getSubSettings("print_jobs");
-        $printers = $this->getProjectSetting("printer_url");
 
+        // Get current print job by $params->job id
+        $print_job = $this->getSubSettings("print_jobs")[$job_id];
 
-        $print_job = $print_jobs[$job_id];
-        $print_tasks = $print_job["print_job_tasks"];
+        // Loop over all print tasks and creata data array
+        foreach ( $print_job["print_job_tasks"] as $t_id => $print_task) {
 
-        foreach ( $print_tasks as $t_id => $print_task) {
-
-            $current_task = [];
+            $task = [];
             foreach (  $print_task["print_job_variables"] as $v_id => $p_var) {
 
                 $field_value="";
                 if(!empty($p_var["pj_var_field"])) {
-                    $field_value=$this->getFieldValue($project_id, $record_id, $p_var["pj_var_field"]);
+
+                    $field_value=$this->getFieldValue(
+                        $project_id, 
+                        $record_id, 
+                        $p_var["pj_var_field"]
+                    );
                 }
+
                 $var_name = $p_var["pj_var_name"];
                 $var_value = $p_var["pj_var_prefix"].$field_value.$p_var["pj_var_suffix"];
-                $current_task[$var_name]  = $var_value;
+
+                $task[$var_name]  = $var_value;
 
             }
-            array_push( $data, $current_task);
+            array_push( $data, $task);
 
         }
 
-        //  Response Array
-        $res = [];
-        array_push(
-            $res, 
-            $data
-        );
-
-        //header('Content-Type: application/json');
-        //echo json_encode($res);
-        //exit;
-
-        //  Document Name, Printer Name/URL, Copies
-        $meta_file = $this->getSystemSetting("file_path") .  $print_job["pj_file"];
-        $meta_printer_url = $printers[$printer_id];
-        //$meta_copies = $copies;
-
-        $meta = array($meta_file, $meta_printer_url);
-        $csv = $this->createCSV($data, $meta);
-
-        echo $csv;
-        exit;
-
+        return $data;
     }
+
+    public function getCSV($data, $job_id, $printer_id, $copies) {
+
+        // set initial copy variable
+        $copy = 1;
+
+        // set meta data, i.e. document name, printer address
+        $file_path = $this->getSystemSetting("file_path") . $this->getSubSettings("print_jobs")[$job_id]["pj_file"];
+        $printer_url = $this->getProjectSetting("printer_url")[$printer_id];
+        $meta_data = array($file_path, $printer_url);
+        
+        // create a file pointer connected to the output stream
+        $output = fopen('php://output', 'w');
+
+        // create table Header from data keys and add to csv
+        $header = array_keys($data[0]);
+        array_push($header, "document", "printer");
+        fputcsv($output, $header);
+
+        //  for each copy
+        while ($copy <= $copies) {
+
+            // loop over list to create table rows with variables in columns
+            foreach($data as $fields) {
+
+                // add each meta data field to each row
+                foreach($meta_data as $meta) {
+                    array_push($fields, $meta);
+                }
+
+                // add the rows to csv
+                fputcsv($output, $fields);
+            }
+
+            $copy++;
+        }
+
+        fclose($output);
+    }
+
 
     public function includeJsAndCss()
     {
@@ -162,6 +183,7 @@ class Bartender extends AbstractExternalModule {
                 $variables = [];
                 $task = [];
                 $data = [];
+
 
                 ?>
                     <div id="formSaveTip" style="position: fixed; left: 923px; display: block;">
@@ -226,34 +248,40 @@ class Bartender extends AbstractExternalModule {
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="mt-3">
-                                                <p class="h6">Job Summary:</p>
-                                                <?php foreach( $print_jobs as $j_id=>$print_job ): ?>
-                                                <div id="print-job-<?= $j_id ?>" class="mb-3 print-job-preview">
-                                                    <div class="text-secondary">
-                                                        <p><b>Name:</b><br><?= $print_job["pj_name"] ?></p>                                                           
-                                                        <p><b>Description:</b><br><?= $print_job["pj_descr"] ?></p>
-                                                        <p><b>File:</b><br><img class="file-icon" src="<?= $this->getUrl('img\bartender_icon.png') ?>"><span class="font-italic"><?= $print_job["pj_file"] ?></span></p>
-                                                        <p><b>URL:</b><br><?= $print_job["pj_name"] ?></p>                                                           
+                                                    <p></p>
+                                                    <?php foreach( $print_jobs as $j_id=>$print_job ): ?>
+                                                    <div id="print-job-<?= $j_id ?>" class="mb-3 print-job-preview">
+                                                        <div class="text-secondary">
+                                                            <p><b>Name:</b><br><?= $print_job["pj_name"] ?></p>                                                           
+                                                            <p><b>Description:</b><br><?= $print_job["pj_descr"] ?></p>
+                                                            <p><b>File:</b><br><img class="file-icon" src="<?= $this->getUrl('img\bartender_icon.png') ?>"><span class="font-italic"><?= $print_job["pj_file"] ?></span></p>
+                                                            <p><b>URL:</b><br><?= $print_job["pj_name"] ?></p>                                                           
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <?php endforeach; ?>
-                                                <!-- <pre><?php // json_encode($data) ?></pre> -->                                                    
+                                                    <?php endforeach; ?>                                               
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="row">
                                             <div class="col">
                                                 <table id="data-preview-table" class="table table-sm table-borderless">
-                                                  
+                                                    <!-- data-preview-table -->                                                                                                                                                    
                                                 </table>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="modal-footer">
+
                                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                    <button id="button-submit-print" type="button" class="btn btn-primary" disabled>Print</button>
-                                    <button id="test" type="button" class="btn btn-success" >Test</button>
+                                    <?php if(MODULE_INTEGRATION_MODE == "file"):  ?>
+                                        <button id="button-submit-mode-file" type="button" class="btn btn-primary" >
+                                        <i class="fas fa-file-download"></i> CSV</button>
+                                    <?php elseif(MODULE_INTEGRATION_MODE == "web"):  ?>
+                                        <button id="button-submit-mode-web" type="button" class="btn btn-primary" disabled>
+                                        <i class="fas fa-print"></i> Print</button>
+                                    <?php endif ; ?>
+
                                 </div>
                             </div>
                         </div>
