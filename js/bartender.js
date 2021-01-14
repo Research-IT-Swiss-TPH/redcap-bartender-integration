@@ -57,11 +57,20 @@ $(function() {
             data: {
                 project_id: 14,
                 record_id: 1,
-                job_id: 0
+                job_id: 0,
+                printer_id: 2,
+                copies: 1
             },
             success: function(data) {
+
+                var blob=new Blob([data]);
+                var link=document.createElement('a');
+                link.href=window.URL.createObjectURL(blob);
+                link.download="test.csv";
+                link.click();
+
                 console.log(data[0])
-                renderDataPreview(data[0])
+                //renderDataPreview(data[0])
             },
             error: function(data) {
                 var response = data['responseJSON'];
@@ -74,6 +83,36 @@ $(function() {
                 }
             }            
         });
+    }
+
+
+    function onDownloadCSV(){
+        fetch(STPH_Bartender.requestHandlerUrl + '&type=downloadCSV', {
+            method: 'POST',
+            body: {
+                project_id: 14,
+                record_id: 1,
+                job_id: 0
+            },
+            headers: {
+                'Content-Type': 'text/csv'
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+              },
+        })
+        .then(resp => resp.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            // the filename you want
+            a.download = 'todo-1.csv';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            //alert('your file has downloaded!'); // or you know, something with better UX...
+        })
+        .catch(() => alert('oh no!'));
     }
 
 

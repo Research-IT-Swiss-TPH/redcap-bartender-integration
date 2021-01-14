@@ -28,11 +28,37 @@ class Bartender extends AbstractExternalModule {
         exit;
     }
 
-    public function getPrintJobData( $project_id, $record_id, $job_id){
+    public function createCSV($list, $meta) {
+        // create a file pointer connected to the output stream
+        $output = fopen('php://output', 'w');
+
+        // Create Table Header
+
+        $header = array("number", "type", "barcode", "document", "printer");
+        fputcsv($output, $header);
+
+        foreach($list as $fields) {
+
+            foreach($meta as $metafield) {
+                array_push($fields, $metafield);
+            }
+            // output the column headings
+            fputcsv($output,$fields);
+
+        }
+
+        fclose($output);
+
+    }
+
+    public function getPrintJobData( $project_id, $record_id, $job_id, $printer_id, $copies){
 
         // Get Print Job Data
         $data = [];
         $print_jobs = $this->getSubSettings("print_jobs");
+        $printers = $this->getProjectSetting("printer_url");
+
+
         $print_job = $print_jobs[$job_id];
         $print_tasks = $print_job["print_job_tasks"];
 
@@ -61,8 +87,19 @@ class Bartender extends AbstractExternalModule {
             $data
         );
 
-        header('Content-Type: application/json');
-        echo json_encode($res);
+        //header('Content-Type: application/json');
+        //echo json_encode($res);
+        //exit;
+
+        //  Document Name, Printer Name/URL, Copies
+        $meta_file = $this->getSystemSetting("file_path") .  $print_job["pj_file"];
+        $meta_printer_url = $printers[$printer_id];
+        //$meta_copies = $copies;
+
+        $meta = array($meta_file, $meta_printer_url);
+        $csv = $this->createCSV($data, $meta);
+
+        echo $csv;
         exit;
 
     }

@@ -23,6 +23,55 @@
     ],
     "system-settings": [
       {
+        "key": "label_global_settings",
+        "name": "<b>Global module configuration</b><br>Define the integration mode and add printers.</div>",
+        "type": "descriptive"
+      },
+      {
+        "key": "integration_mode",
+        "name": "Integration Mode",
+        "required": true,
+        "type": "dropdown",
+        "choices": [
+          {
+            "value": "file",
+            "name": "File Integration"
+          },
+          {
+            "value": "web",
+            "name": "Web Service Integration"
+          }          
+        ]
+      },
+      {
+        "key": "webservice_url",
+        "name": "<b>Webservice Url</b><br> Address to the Webservice Integration that are deployed on the Server</div>",
+        "type": "text",
+        "required": true,
+        "branchingLogic": {
+          "conditions": [
+            {
+              "field": "integration_mode",
+              "value": "web"
+            }
+          ]
+        }
+      },
+      {
+        "key": "file_path",
+        "name": "<b>File Path</b><br> Path to the folder where Bartender files are</div>",
+        "type": "text",
+        "required": true,
+        "branchingLogic": {
+          "conditions": [
+            {
+              "field": "integration_mode",
+              "value": "file"
+            }
+          ]
+        }
+      },
+      {
         "key": "label_printers",
         "name": "<b>Printers</b><br>Add printers that can later be selected during print job.</div>",
         "type": "descriptive"
@@ -56,12 +105,7 @@
         "key": "alert_warning_printers",
         "name": "<div class=\u0022alert alert-warning configuration-alert\u0022 role=\u0022alert\u0022><i class=\u0022fas fa-exclamation-triangle\u0022></i> <b>Notice:</b> Printers must be added in Module System Settings.</div>",
         "type": "descriptive"
-      },
-      {
-        "key": "webservice_url",
-        "name": "<b>Webservice Url</b><br> Address to the Webservice Integration that are deployed on the Server.</div>",
-        "type": "json"
-      },         
+      },       
       {
         "key": "label_print_jobs",
         "name": "<b>Print Jobs</b><br>Add print jobs with each multiple tasks and variables.</div>",
@@ -89,7 +133,7 @@
           },
           {
             "key": "pj_file",
-            "name": "Bartender Filename",
+            "name": "File",
             "required": true,
             "type": "text",
             "repeatable": false
